@@ -29,3 +29,7 @@ tqdm==4.52.0
 yacs==0.1.8
 facenet-pytorch==2.5.2
 
+# Extra for API + Runpod
+fastapi
+uvicorn
+runpod
