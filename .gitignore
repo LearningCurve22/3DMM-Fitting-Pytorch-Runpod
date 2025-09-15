@@ -1,0 +1,37 @@
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.pkl
+
+# Virtual environments
+.env/
+.venv/
+env/
+venv/
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Logs and temp files
+*.log
+*.tmp
+*.swp
+
+# Model / dataset files (DO NOT PUSH TO GITHUB)
+*.mat
+*.bin
+*.npy
+*.npz
+*.h5
+*.pth
+*.pt
+
+# Output files
+*.obj
+*.ply
+
+# System files
+.DS_Store
+Thumbs.db
