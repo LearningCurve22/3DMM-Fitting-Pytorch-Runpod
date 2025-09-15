@@ -1,78 +1,104 @@
-# 3DMM model fitting using Pytorch
+# 3DMM-Fitting-Pytorch Runpod API
 
-This is a fitting framework implemented in Pytorch for reconstructing the face in an image or a video using a 3DMM model. 
+This repository adapts the original [3DMM-Fitting-Pytorch](https://github.com/ascust/3DMM-Fitting-Pytorch) project to run as a **serverless API on Runpod**.  
+The API accepts a single face image as input and outputs a **3D face reconstruction (.obj)** using the Basel Face Model (BFM) and expression PCA data.  
 
-The framework only uses Pytorch modules and a differentiable renderer from pytorch3d. The whole module is differentiable and can be integrated into other systems for the gradient propagation. 
+---
 
-## Updates
-- :star2: Refactored the code to make future extension easier (other 3DMM models will be supported). The hyper-parameters are also re-organized.
-- :star2: Added support for monocular video reconstruction. 
-- :star2: Added support for multi-gpu when processing long videos.
+## 🚀 Features
+- Run as a **serverless API** on [Runpod](https://runpod.io)  
+- Accepts user-uploaded face images via API  
+- Produces **3D face meshes (.obj)** using 3DMM fitting  
+- Supports persistent volumes for model files  
 
-<p align="center">
-  <img src="gifs/demo.gif" alt="demo" width="512px">
-</p>
+---
 
-<p align="center">
-  <img src="gifs/video_demo.gif" alt="demo" width="830px">
-</p>
-
-## Installation
-### Requirements
-- [pytorch3d](https://github.com/facebookresearch/pytorch3d) It might require a specific version of Pytorch to make pytorch3d run succussfully on gpus, please follow the official instructions.
-- Please refer to "requirements.txt" for other dependences.
-- [Basel Face Model 2009 (BFM09)](https://faces.dmi.unibas.ch/bfm/index.php?nav=1-2&id=downloads)
-- [Expression Basis](https://github.com/Juyong/3DFace) extra expression basis.
-
-## How to use
-### Installation
-1. Clone the repo:
+## 📂 Project Structure
 ```
-git clone https://github.com/ascust/3DMM-Fitting-Pytorch
-cd 3DMM-Fitting-Pytorch
+3DMM-Fitting-Runpod/
+│── app.py                # FastAPI app (local testing)
+│── runpod_handler.py     # Runpod serverless handler
+│── fit_one.py            # 3DMM fitting logic (adapted)
+│── core/                 # Core 3DMM utilities (from original repo)
+│── util/                 # Helper functions (from original repo)
+│── requirements.txt      # Python dependencies
+│── Dockerfile            # Runpod container build
+│── README.md             # This file
 ```
 
-2. Download the Basel Face Model and put "01_MorphableModel.mat" and put it into "BFM".
+---
 
-3. Download the Expression Basis. Go to the [repo](https://github.com/Juyong/3DFace), download the "CoarseData" and put "Exp_Pca.bin" into "BFM".
+## ⚙️ Setup
 
-4. Convert the BFM parameters by:
+### 1. Clone Repo
+```bash
+git clone https://github.com/YOUR-USERNAME/3DMM-Fitting-Pytorch-Runpod.git
+cd 3DMM-Fitting-Pytorch-Runpod
 ```
-python convert_bfm09_data.py
+
+### 2. Install Dependencies
+```bash
+pip install -r requirements.txt
 ```
 
-### Single Image Reconstruction
+### 3. Model Files
+Due to licensing restrictions, **model files are not included** in this repo.  
+Download and place the following files into your **Runpod volume**:
+
+- `01_MorphableModel.mat`
+- `Exp_Pca.bin`
+
+Example Runpod mount path:
 ```
-python fit_single_img.py --img_path data/000002.jpg --res_folder results 
+/workspace/volume/01_MorphableModel.mat
+/workspace/volume/Exp_Pca.bin
 ```
-The results are stored in "results" folder.
 
+---
 
-### Monocular Video Reconstruction
-To fit a video, simply run:
+## ▶️ Run Locally (FastAPI)
+```bash
+uvicorn app:app --host 0.0.0.0 --port 8000
 ```
-python fit_video.py --v_path data/sample_video.mp4 --res_folder results 
+Then open [http://localhost:8000/docs](http://localhost:8000/docs) to test.
+
+---
+
+## ☁️ Run on Runpod Serverless
+
+1. Build & push container (Runpod will do this automatically if connected to GitHub).  
+2. Mount your volume with model files.  
+3. Deploy as a serverless endpoint.  
+
+---
+
+## 📡 API Usage
+
+### Endpoint: `/fit`
+**Method:** `POST`  
+**Input:** Image file (`.jpg`/`.png`)  
+**Output:** `.obj` file (3D face mesh)  
+
+Example (Python):
+```python
+import requests
+
+url = "https://YOUR-RUNPOD-ENDPOINT/fit"
+files = {"file": open("face.jpg", "rb")}
+response = requests.post(url, files=files)
+
+with open("output.obj", "wb") as f:
+    f.write(response.content)
 ```
-The script will extract frames, detact features and fit all frames. 
 
-Fitting a video is a bit different from fitting an image, because frames are not isolated. In this implementation, we first estimate shape and texture of the target face using some of the frames (indicated by --nframes_shape). Then we estimate the other coefficients (expression, rotatation etc.) for each frame and keep the shape and texture coefficients fixed. 
+---
 
-For the first frame, we use much more iterations to get a good starting point. For remaining frames, each is initialized from the previous estimation.Pose regulerizers are also imposed to increase temporal consistency. 
+## ⚠️ Notes
+- This repo is for **research and educational use only**.  
+- The **Basel Face Model (BFM)** license forbids redistribution. You must obtain the model files yourself.  
 
-Please check the reconstructed video in the result folder.
+---
 
-### Multi-gpu and -process support
-
-It could take quite a while to process a long video, so multi-gpu and multi-process are also supported to accelerate fitting. To use this feature, simply run:
-```
-python fit_video.py --v_path data/sample_video.mp4 --res_folder results --ngpus 4 --nworkers 4
-```
-Here we use 4 gpus and 4 workers. We can also use more workers to assign each gpu with multiple workers. The video will be evenly split and each clip will be fit respectively. 
-
-### Hyperparameters
-There are bunch of parameters that might require further tuning. 
-The iteration numbers for non-rigid fitting "--first_nrf_iters" and "--rest_nrf_iters" affect the fitting speed a lot since we have to render the 3d mesh in each iteration. Try to change it to find a trade-off between speed and accuracy.
-If the result is not good, try to play with the parameters.
-
-## Acknowledgement
-The code is partially borrowed from [Deep3DFaceReconstrution](https://github.com/microsoft/Deep3DFaceReconstruction), which is a Tensorflow-based deep reconstruction method using CNNs. Please note that our framework does not require any pretrained deep models. We estimate the parameters directly using the landmarks and photometric loss as the supervision.
+## 📜 License
+This repo follows the original [3DMM-Fitting-Pytorch license](https://github.com/ascust/3DMM-Fitting-Pytorch).  
+Model files must be obtained separately under their own license terms.  
