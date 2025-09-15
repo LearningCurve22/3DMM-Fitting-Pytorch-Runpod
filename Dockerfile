@@ -1,9 +1,9 @@
 FROM pytorch/pytorch:2.1.0-cuda11.8-cudnn8-runtime
 
-# Prevent tzdata from prompting for input
+# Prevent tzdata from prompting
 ARG DEBIAN_FRONTEND=noninteractive
 
-# Install system deps
+# Install system deps (include git BEFORE pip)
 RUN apt-get update && apt-get install -y \
     git wget unzip libgl1 cmake ninja-build \
     && rm -rf /var/lib/apt/lists/*
