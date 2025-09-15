@@ -1,31 +1,37 @@
 import runpod
-import requests
-import subprocess
-import uuid
-import os
+import base64
+import tempfile
+from fit_one import fit_image  # Your function to run 3DMM fitting
 
-MORPHABLE_MODEL = "/workspace/volume/01_MorphableModel.mat"
-EXP_PCA = "/workspace/volume/Exp_Pca.bin"
-
+# Handler function for Runpod
 def handler(event):
-    image_url = event["input"]["image_url"]
-    img_name = f"input_{uuid.uuid4().hex}.jpg"
-    output_name = f"output_{uuid.uuid4().hex}.obj"
+    try:
+        # Input image comes from API call
+        image_data = event["input"]["image"]
 
-    # Download image
-    img_path = os.path.join("/workspace", img_name)
-    with open(img_path, "wb") as f:
-        f.write(requests.get(image_url).content)
+        # Save input image temporarily
+        temp_in = tempfile.NamedTemporaryFile(delete=False, suffix=".jpg")
+        temp_in.write(base64.b64decode(image_data))
+        temp_in.close()
 
-    # Run fitting
-    subprocess.run([
-        "python", "fit_one.py",
-        "--image", img_path,
-        "--morphable", MORPHABLE_MODEL,
-        "--exp", EXP_PCA,
-        "--output", output_name
-    ])
+        # Run fitting → generate .obj
+        output_obj_path = fit_image(temp_in.name)
 
-    return {"result": output_name}
+        # Read the OBJ file and encode as base64
+        with open(output_obj_path, "rb") as f:
+            obj_data = base64.b64encode(f.read()).decode("utf-8")
 
+        return {
+            "status": "success",
+            "output_obj": obj_data
+        }
+
+    except Exception as e:
+        return {
+            "status": "error",
+            "message": str(e)
+        }
+
+# Start Runpod serverless
 runpod.serverless.start({"handler": handler})
+
