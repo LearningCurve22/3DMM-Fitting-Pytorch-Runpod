@@ -18,7 +18,9 @@ RUN pip install --upgrade pip setuptools wheel
 RUN pip install --no-cache-dir -r requirements.txt --verbose \
     --extra-index-url https://download.pytorch.org/whl/cu118
 
-# Install PyTorch3D (must match PyTorch version)
-RUN pip install --no-cache-dir "git+https://github.com/facebookresearch/pytorch3d.git"
+# Install PyTorch3D (match torch 2.1.0 + CUDA 11.8 + Python 3.10)
+RUN pip install --no-cache-dir pytorch3d \
+    -f https://dl.fbaipublicfiles.com/pytorch3d/packaging/wheels/py310_cu118_pyt210/download.html
+
 
 CMD ["python", "-u", "runpod_handler.py"]
