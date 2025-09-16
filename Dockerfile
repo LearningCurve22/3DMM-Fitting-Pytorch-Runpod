@@ -1,5 +1,6 @@
-# Dockerfile (place at repo root)
-FROM pytorch/pytorch:2.8.0-cuda12.8-cudnn-devel // or use runpod's official pytorch image if provided
+# Base image: PyTorch with CUDA 12.8 and cuDNN
+# If RunPod provides its own base image, you can replace this with that.
+FROM pytorch/pytorch:2.8.0-cuda12.8-cudnn-devel
 
 # Set working dir
 WORKDIR /app
