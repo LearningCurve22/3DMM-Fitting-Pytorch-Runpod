@@ -1,6 +1,6 @@
 # Base image: PyTorch with CUDA 12.8 and cuDNN
 # If RunPod provides its own base image, you can replace this with that.
-FROM runpod/pytorch:2.5.1-py3.10-cuda12.4.1-devel-ubuntu22.04
+FROM pytorch/pytorch:2.5.1-cuda12.4-cudnn9-devel
 
 
 # Set working dir
