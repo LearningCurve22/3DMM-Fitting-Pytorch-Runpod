@@ -20,4 +20,4 @@ RUN pip install -r requirements.txt
 RUN pip install "git+https://github.com/facebookresearch/pytorch3d.git"
 
 # Runpod handler entrypoint
-CMD ["python", "runpod_handler.py"]
+CMD ["python", "-u", "runpod_handler.py"]
