@@ -1,18 +1,44 @@
-FROM pytorch/pytorch:2.1.0-cuda11.8-cudnn8-runtime
+# Dockerfile (place at repo root)
+FROM pytorch/pytorch:2.8.0-cuda12.8-cudnn-devel // or use runpod's official pytorch image if provided
 
-RUN apt-get update && apt-get install -y git wget unzip libgl1 cmake ninja-build
+# Set working dir
+WORKDIR /app
 
-WORKDIR /workspace
-COPY . /workspace
+# copy repo
+COPY . /app
 
-# Upgrade pip tools
-RUN echo "=== Upgrading pip/setuptools/wheel ===" && \
-    pip install --upgrade pip setuptools wheel
+# Install system deps
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    git \
+    wget \
+    unzip \
+    libgl1-mesa-glx \
+    && rm -rf /var/lib/apt/lists/*
 
-RUN echo "=== Installing Python requirements.txt ===" && \
-    pip install -r requirements.txt
+# Python deps - install most libs via pip
+# Note: we avoid installing torch here if the base image already contains a working torch
+# If your base DOES NOT have torch, uncomment the pip install torch line and set the right index-url for your CUDA.
+RUN pip install --upgrade pip
 
-# Install PyTorch3D (must match PyTorch version)
-# RUN pip install "git+https://github.com/facebookresearch/pytorch3d.git"
+# Install GPU-enabled PyTorch only if needed.
+# Uncomment and adapt the following if your base image doesn't already have torch:
+# RUN pip install --index-url https://download.pytorch.org/whl/cu128 \
+#     "torch" "torchvision" "torchaudio"
 
-CMD ["python", "-u", "runpod_handler.py"]
+# Install pytorch3d (recommended to install from official instructions for matching torch)
+# Keep this as the pip install; if it fails, match the version to torch installed in the image.
+RUN pip install 'git+https://github.com/facebookresearch/pytorch3d.git'
+
+# Install the rest of the python requirements in one go
+COPY requirements.txt /app/requirements.txt
+RUN pip install -r /app/requirements.txt
+
+# Expose API port
+EXPOSE 8000
+
+# Create results dir
+RUN mkdir -p /app/results /app/BFM /app/uploads
+
+# Entrypoint for the RunPod handler (this will be the API app)
+CMD ["uvicorn", "handler-runpod:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
