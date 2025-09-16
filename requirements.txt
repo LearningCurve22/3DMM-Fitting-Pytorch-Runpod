@@ -14,7 +14,7 @@ Pillow==8.0.1
 portalocker==2.0.0
 pyparsing==2.4.7
 python-dateutil==2.8.1
-pytorch3d==0.3.0
+# pytorch3d==0.3.0 # install dekat Dockerfile
 PyWavelets==1.1.1
 PyYAML==5.3.1
 scikit-image==0.17.2
@@ -23,8 +23,8 @@ six==1.15.0
 tabulate==0.8.7
 termcolor==1.1.0
 tifffile==2020.11.18
-torch==1.6.0
-torchvision==0.7.0
+# torch==1.6.0
+# torchvision==0.7.0
 tqdm==4.52.0
 yacs==0.1.8
 facenet-pytorch==2.5.2
