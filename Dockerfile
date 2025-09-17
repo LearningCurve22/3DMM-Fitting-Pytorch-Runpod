@@ -43,4 +43,6 @@ EXPOSE 8000
 RUN mkdir -p /app/results /app/BFM /app/uploads
 
 # Entrypoint for the RunPod handler (this will be the API app)
-CMD ["uvicorn", "handler-runpod:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+#CMD ["uvicorn", "runpod_handler:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+# Entrypoint for RunPod serverless
+CMD ["python", "-u", "runpod_handler.py"]
