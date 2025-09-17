@@ -8,7 +8,7 @@ import runpod
 
 BFM_DIR = os.environ.get("BFM_DIR", "/runpod-volume/BFM")
 RESULTS_ROOT = "/runpod-volume/results"
-UPLOADS = "/app/uploads"
+UPLOADS = "/runpod-volume/uploads"
 os.makedirs(RESULTS_ROOT, exist_ok=True)
 os.makedirs(UPLOADS, exist_ok=True)
 
